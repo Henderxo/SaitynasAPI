@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express') 
 const mongoose = require('mongoose') 
 
@@ -6,7 +7,7 @@ const gamesController = require('./controllers/gamesController')
 const developersController = require('./controllers/developersController') 
 const commentsController = require('./controllers/commentsController') 
 
-mongoose.connect('mongodb+srv://Admin2:Admin2@cluster-dev.05zpa.mongodb.net/GameForum?retryWrites=true&w=majority&appName=cluster-dev', {})
+mongoose.connect(process.env.MONGODB_URI, {})
   .then(() => console.log('Connected to MongoDB Atlas!'))
   .catch((error) => console.log('Error connecting to MongoDB:', error)) 
 
