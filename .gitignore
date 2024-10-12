@@ -5,9 +5,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Ignore JSON files if necessary
-*.JSON
-
 # Distribution / packaging
 bin/
 build/
