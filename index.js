@@ -22,6 +22,7 @@ app.get('/users/:id', usersController.getUserById)
 app.post('/users', usersController.createUser) 
 app.put('/users/:id', usersController.updateUser) 
 app.delete('/users/:id', usersController.deleteUser) 
+app.get('/users/:userId/developers', usersController.getUsersDevelopers)
 
 // Game routes
 app.get('/developers/games/:developerId', gamesController.getGamesByDeveloper)
@@ -38,6 +39,7 @@ app.get('/developers/:id', developersController.getDeveloperById)
 app.post('/developers', developersController.createDeveloper) 
 app.put('/developers/:id', developersController.updateDeveloper) 
 app.delete('/developers/:id', developersController.deleteDeveloper) 
+app.get('/developers/:developerId/comments', developersController.getCommentsByDeveloper);
 
 // Comment routes
 app.get('/comments', commentsController.getAllComments)
