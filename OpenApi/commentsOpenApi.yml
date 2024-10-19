@@ -1,0 +1,219 @@
+openapi: 3.0.0
+info:
+  title: Comments API
+  description: API to manage comments, including CRUD operations
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: http://example.com/support
+    email: support@example.com
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /comments:
+    get:
+      summary: Get all comments
+      tags:
+        - Comments
+      parameters:
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [userId, gameId]
+          description: Expand related user or game data
+      responses:
+        '200':
+          description: A list of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '500':
+          description: Error fetching comments
+    post:
+      summary: Create a new comment
+      tags:
+        - Comments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        '201':
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '422':
+          description: Validation error for input data
+        '500':
+          description: Error creating comment
+
+  /comments/{id}:
+    get:
+      summary: Get comment by ID
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The comment ID
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [userId, gameId]
+          description: Expand related user or game data
+      responses:
+        '200':
+          description: A comment object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '404':
+          description: Comment not found
+        '500':
+          description: Error fetching comment
+
+    put:
+      summary: Update comment by ID
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The comment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentInput'
+      responses:
+        '200':
+          description: Updated comment object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '404':
+          description: Comment not found
+        '422':
+          description: Validation error for input data
+        '500':
+          description: Error updating comment
+
+    delete:
+      summary: Delete comment by ID
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The comment ID
+      responses:
+        '200':
+          description: Deleted comment
+        '404':
+          description: Comment not found
+        '500':
+          description: Error deleting comment
+
+  /games/comments/{gameId}:
+    get:
+      summary: Get comments for a specific game
+      tags:
+        - Comments
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The game ID
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [userId, gameId]
+          description: Expand related user or game data
+      responses:
+        '200':
+          description: List of comments for a specific game
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Game not found
+        '500':
+          description: Error fetching comments for the game
+
+components:
+  schemas:
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the comment
+        title:
+          type: string
+        body:
+          type: string
+        gameId:
+          type: string
+          description: The ID of the game associated with this comment
+        userId:
+          type: string
+          description: The ID of the user who made the comment
+      example:
+        id: 670aab291d9ef810bcc54993
+        title: Fun but needs improvement
+        body: Retro Racer is fun, but the controls could be a bit smoother.
+        gameId: 670aa9037ca2d60776b523e8
+        userId: 670808e1b28f81ef82392ec5
+
+    CommentInput:
+      type: object
+      required:
+        - title
+        - body
+        - gameId
+        - userId
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        gameId:
+          type: string
+          description: The ID of the game associated with this comment
+        userId:
+          type: string
+          description: The ID of the user who made the comment
+      example:
+        title: Fun but needs improvement
+        body: Retro Racer is fun, but the controls could be a bit smoother.
+        gameId: 670aa9037ca2d60776b523e8
+        userId: 670808e1b28f81ef82392ec5

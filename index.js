@@ -1,11 +1,18 @@
 require('dotenv').config();
 const express = require('express') 
-const mongoose = require('mongoose') 
+const mongoose = require('mongoose')
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const path = require('path'); 
 
 const usersController = require('./controllers/usersController') 
 const gamesController = require('./controllers/gamesController') 
 const developersController = require('./controllers/developersController') 
 const commentsController = require('./controllers/commentsController') 
+const usersApiSpec = YAML.load(path.join(__dirname, './OpenApi/userOpenApi.yml'));
+const commentsApiSpec = YAML.load(path.join(__dirname, './OpenApi/commentsOpenApi.yml'));
+const developersApiSpec = YAML.load(path.join(__dirname, './OpenApi/developerOpenApi.yml'));
+const gamesApiSpec = YAML.load(path.join(__dirname, './OpenApi/gamesOpenApi.yml'));
 
 mongoose.connect(process.env.MONGODB_URI, {})
   .then(() => console.log('Connected to MongoDB Atlas!'))
@@ -15,6 +22,12 @@ const app = express()
 const PORT = process.env.PORT || 3000 
 
 app.use(express.json()) 
+
+
+app.use('/api-docs/users', swaggerUi.serve, swaggerUi.setup(usersApiSpec));
+app.use('/api-docs/comments', swaggerUi.serve, swaggerUi.setup(commentsApiSpec));
+app.use('/api-docs/developers', swaggerUi.serve, swaggerUi.setup(developersApiSpec));
+app.use('/api-docs/games', swaggerUi.serve, swaggerUi.setup(gamesApiSpec));
 
 // User routes
 app.get('/users', usersController.getAllUsers) 
@@ -53,3 +66,9 @@ app.delete('/comments/:id', commentsController.deleteComment)
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`) 
 }) 
+
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});

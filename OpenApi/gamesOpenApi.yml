@@ -1,0 +1,254 @@
+openapi: 3.0.0
+info:
+  title: Games API
+  description: API to manage games, including CRUD operations
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: http://example.com/support
+    email: support@example.com
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /games:
+    get:
+      summary: Get all games
+      tags:
+        - Games
+      parameters:
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [developerId]
+          description: Expand related developer data
+      responses:
+        '200':
+          description: A list of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '500':
+          description: Error fetching games
+    post:
+      summary: Create a new game
+      tags:
+        - Games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameInput'
+      responses:
+        '201':
+          description: Created game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '422':
+          description: Validation error for input data
+        '500':
+          description: Error creating game
+
+  /games/{id}:
+    get:
+      summary: Get game by ID
+      tags:
+        - Games
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The game ID
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [developerId]
+          description: Expand related developer data
+      responses:
+        '200':
+          description: A game object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Game not found
+        '500':
+          description: Error fetching game
+
+    put:
+      summary: Update game by ID
+      tags:
+        - Games
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The game ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameInput'
+      responses:
+        '200':
+          description: Updated game object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Game not found
+        '422':
+          description: Validation error for input data
+        '500':
+          description: Error updating game
+
+    delete:
+      summary: Delete game by ID
+      tags:
+        - Games
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The game ID
+      responses:
+        '200':
+          description: Deleted game
+        '404':
+          description: Game not found
+        '500':
+          description: Error deleting game
+
+components:
+  schemas:
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the game
+        title:
+          type: string
+        genre:
+          type: string
+          enum:
+            - Action
+            - Adventure
+            - Rpg
+            - Strategy
+            - Sports
+            - Simulation
+            - Puzzle
+            - Shooter
+            - Horror
+            - Fantasy
+            - Racing
+        platform:
+          type: string
+          enum:
+            - Pc
+            - Xbox
+            - Playstation
+            - Switch
+            - Mobile
+            - Vr
+        controllerSupport:
+          type: boolean
+        language:
+          type: string
+        playerType:
+          type: string
+          enum:
+            - Single_player
+            - Multiplayer
+            - Co_op
+            - Battle_royale
+        developerId:
+          type: string
+          description: The ID of the developer associated with this game
+      example:
+        id: 670aa9037ca2d60776b523e8
+        title: Retro Racer
+        genre: Racing
+        platform: Switch
+        controllerSupport: true
+        language: Japanese
+        playerType: Multiplayer
+        developerId: 67081490ab3278bc70ee582c
+
+    GameInput:
+      type: object
+      required:
+        - title
+        - genre
+        - platform
+        - controllerSupport
+        - language
+        - playerType
+        - developerId
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+          enum:
+            - Action
+            - Adventure
+            - Rpg
+            - Strategy
+            - Sports
+            - Simulation
+            - Puzzle
+            - Shooter
+            - Horror
+            - Fantasy
+            - Racing
+        platform:
+          type: string
+          enum:
+            - Pc
+            - Xbox
+            - Playstation
+            - Switch
+            - Mobile
+            - Vr
+        controllerSupport:
+          type: boolean
+        language:
+          type: string
+        playerType:
+          type: string
+          enum:
+            - Single_player
+            - Multiplayer
+            - Co_op
+            - Battle_royale
+        developerId:
+          type: string
+          description: The ID of the developer associated with this game
+      example:
+        title: Retro Racer
+        genre: Racing
+        platform: Switch
+        controllerSupport: true
+        language: Japanese
+        playerType: Multiplayer
+        developerId: 67081490ab3278bc70ee582c

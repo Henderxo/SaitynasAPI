@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  title: Developers API
+  description: API to manage developers, including CRUD operations
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: http://example.com/support
+    email: support@example.com
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /developers:
+    get:
+      summary: Get all developers
+      tags:
+        - Developers
+      parameters:
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [userId]
+          description: Expand related user data
+      responses:
+        '200':
+          description: A list of developers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Developer'
+        '500':
+          description: Error fetching developers
+    post:
+      summary: Create a new developer
+      tags:
+        - Developers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeveloperInput'
+      responses:
+        '201':
+          description: Created developer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Developer'
+        '422':
+          description: Validation error for input data
+        '500':
+          description: Error creating developer
+
+  /developers/{id}:
+    get:
+      summary: Get developer by ID
+      tags:
+        - Developers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The developer ID
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [userId]
+          description: Expand related user data
+      responses:
+        '200':
+          description: A developer object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Developer'
+        '404':
+          description: Developer not found
+        '500':
+          description: Error fetching developer
+
+    put:
+      summary: Update developer by ID
+      tags:
+        - Developers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The developer ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeveloperInput'
+      responses:
+        '200':
+          description: Updated developer object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Developer'
+        '404':
+          description: Developer not found
+        '422':
+          description: Validation error for input data
+        '500':
+          description: Error updating developer
+
+    delete:
+      summary: Delete developer by ID
+      tags:
+        - Developers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The developer ID
+      responses:
+        '200':
+          description: Deleted developer
+        '404':
+          description: Developer not found
+        '500':
+          description: Error deleting developer
+
+  /developers/games/{developerId}:
+    get:
+      summary: Get games by developer
+      tags:
+        - Developers
+      parameters:
+        - name: developerId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The developer ID
+      responses:
+        '200':
+          description: List of games developed by the developer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '404':
+          description: Developer not found
+        '500':
+          description: Error fetching games
+
+  /developers/{developerId}/comments:
+    get:
+      summary: Get comments for all games by developer
+      tags:
+        - Developers
+      parameters:
+        - name: developerId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The developer ID
+        - name: expand
+          in: query
+          schema:
+            type: string
+            enum: [gameId, userId]
+          description: Expand related game or user data
+      responses:
+        '200':
+          description: List of comments for games by the developer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Developer not found
+        '500':
+          description: Error fetching comments
+
+components:
+  schemas:
+    Developer:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the developer
+        name:
+          type: string
+        founder:
+          type: string
+        founded:
+          type: string
+          format: date
+        headquarters:
+          type: string
+        userId:
+          type: string
+          description: The ID of the associated user
+      example:
+        id: 67081490ab3278bc70ee582c
+        name: Awesome Dev Studio
+        founder: John Doe
+        founded: 2010-05-01T00:00:00.000Z
+        headquarters: San Francisco, CA
+        userId: 670808e1b28f81ef82392ec5
+
+    DeveloperInput:
+      type: object
+      required:
+        - name
+        - founder
+        - founded
+        - headquarters
+        - userId
+      properties:
+        name:
+          type: string
+        founder:
+          type: string
+        founded:
+          type: string
+          format: date
+        headquarters:
+          type: string
+        userId:
+          type: string
+          description: The ID of the associated user
+      example:
+        name: Awesome Dev Studio
+        founder: John Doe
+        founded: 2010-05-01T00:00:00.000Z
+        headquarters: San Francisco, CA
+        userId: 670808e1b28f81ef82392ec5
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the game
+        title:
+          type: string
+        genre:
+          type: string
+        platform:
+          type: string
+        controllerSupport:
+          type: boolean
+        language:
+          type: string
+        playerType:
+          type: string
+        developerId:
+          type: string
+          description: The ID of the developer associated with this game
+      example:
+        id: 670aa9037ca2d60776b523e8
+        title: Retro Racer
+        genre: Racing
+        platform: Switch
+        controllerSupport: true
+        language: Japanese
+        playerType: Multiplayer
+        developerId: 67081490ab3278bc70ee582c
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the comment
+        content:
+          type: string
+        gameId:
+          type: string
+          description: The ID of the associated game
+        userId:
+          type: string
+          description: The ID of the user who made the comment
+      example:
+        id: 6709d9e3f82b1a1d7b523c90
+        content: Great game, really enjoyed it!
+        gameId: 670aa9037ca2d60776b523e8
+        userId: 670808e1b28f81ef82392ec5
