@@ -56,14 +56,13 @@ PORT=3000
 
 ### Developer Routes
 
-| Method | Endpoint                          | Description                     |
-|--------|-----------------------------------|---------------------------------|
-| GET    | `/developers`                     | Retrieve all developers         |
-| GET    | `/developers/:id`                 | Retrieve developer by ID        |
-| POST   | `/developers`                     | Create a new developer          |
-| PUT    | `/developers/:id`                 | Update an existing developer    |
-| DELETE | `/developers/:id`                 | Delete a developer              |
-| GET    | `/developers/games/:developerId   | Retrieve games by developer ID  |
+| Method | Endpoint                           | Description                     |
+|--------|------------------------------------|---------------------------------|
+| GET    | `/developers`                      | Retrieve all developers         |
+| GET    | `/developers/:id`                  | Retrieve developer by ID        |
+| POST   | `/developers`                      | Create a new developer          |
+| PUT    | `/developers/:id`                  | Update an existing developer    |
+| DELETE | `/developers/:id`                  | Delete a developer              |
 
 ### Game Routes
 
@@ -77,10 +76,18 @@ PORT=3000
 
 ### Comment Routes
 
-| Method | Endpoint                                    | Description                     |
-|--------|---------------------------------------------|---------------------------------|
-| GET    | `/comments`                                 | Retrieve all comments           |
-| GET    | `/games/comments/:gameId`                   | Retrieve comments by game ID    |
-| POST   | `/comments`                                 | Create a new comment            |
-| PUT    | `/comments/:id`                             | Update an existing comment      |
-| DELETE | `/comments/:id`                             | Delete a comment                |
+| Method | Endpoint                                        | Description                     |
+|--------|-------------------------------------------------|---------------------------------|
+| GET    | `/comments`                                     | Retrieve all comments           |
+| GET    | `/comments/:id`                                 | Retrieve comment by id          |
+| POST   | `/comments`                                     | Create a new comment            |
+| PUT    | `/comments/:id`                                 | Update an existing comment      |
+| DELETE | `/comments/:id`                                 | Delete a comment                |
+
+### More Routes
+
+**| Method | Endpoint                                              | Description                         |**
+| GET    | `/developers/:developerId/games`                      | Retrieve games by developer ID      |
+| GET    | `/games/:gameId/comments`                             | Retrieve comments by game ID        |
+| GET    | `/developers/:developerId/comments`                   | Retrieve comments by developer ID   |
+| GET    | `/users/:userId/developers`                           | Retrieve developers by user ID      |
