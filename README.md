@@ -87,6 +87,7 @@ PORT=3000
 ### More Routes
 
 | Method | Endpoint                                              | Description                         |
+|--------|-------------------------------------------------------|-------------------------------------|
 | GET    | `/developers/:developerId/games`                      | Retrieve games by developer ID      |
 | GET    | `/games/:gameId/comments`                             | Retrieve comments by game ID        |
 | GET    | `/developers/:developerId/comments`                   | Retrieve comments by developer ID   |
