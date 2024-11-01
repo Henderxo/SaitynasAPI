@@ -9,6 +9,8 @@ const usersController = require('./controllers/usersController')
 const gamesController = require('./controllers/gamesController') 
 const developersController = require('./controllers/developersController') 
 const commentsController = require('./controllers/commentsController') 
+const auth = require('./services/auth');
+const authorize = require('./services/authorize');
 const usersApiSpec = YAML.load(path.join(__dirname, './OpenApi/userOpenApi.yml'));
 const commentsApiSpec = YAML.load(path.join(__dirname, './OpenApi/commentsOpenApi.yml'));
 const developersApiSpec = YAML.load(path.join(__dirname, './OpenApi/developerOpenApi.yml'));
@@ -29,6 +31,9 @@ app.use('/api-docs/comments', swaggerUi.serveFiles(commentsApiSpec), swaggerUi.s
 app.use('/api-docs/developers', swaggerUi.serveFiles(developersApiSpec), swaggerUi.setup(developersApiSpec));
 app.use('/api-docs/games', swaggerUi.serveFiles(gamesApiSpec), swaggerUi.setup(gamesApiSpec));
 
+//Authorization routes
+app.get('/login', usersController.loginUser)
+
 // User routes
 app.get('/users', usersController.getAllUsers) 
 app.get('/users/:id', usersController.getUserById) 
@@ -39,21 +44,21 @@ app.delete('/users/:id', usersController.deleteUser)
 // Game routes
 app.get('/games', gamesController.getAllGames) 
 app.get('/games/:id', gamesController.getGameById) 
-app.post('/games', gamesController.createGame) 
+app.post('/games',  auth, authorize(['admin', 'dev']), gamesController.createGame) 
 app.put('/games/:id', gamesController.updateGame) 
 app.delete('/games/:id', gamesController.deleteGame) 
 
 // Developer routes
 app.get('/developers', developersController.getAllDevelopers) 
 app.get('/developers/:id', developersController.getDeveloperById) 
-app.post('/developers', developersController.createDeveloper) 
+app.post('/developers', auth, authorize(['admin']), developersController.createDeveloper) 
 app.put('/developers/:id', developersController.updateDeveloper) 
 app.delete('/developers/:id', developersController.deleteDeveloper) 
 
 // Comment routes
 app.get('/comments', commentsController.getAllComments)
 app.get('/comments/:id', commentsController.getCommentById) 
-app.post('/comments', commentsController.createComment) 
+app.post('/comments', auth, authorize(['admin', 'dev', 'guest']), commentsController.createComment) 
 app.put('/comments/:id', commentsController.updateComment) 
 app.delete('/comments/:id', commentsController.deleteComment) 
 

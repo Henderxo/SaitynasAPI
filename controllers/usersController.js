@@ -1,6 +1,7 @@
 const Developer = require('../models/Developer')
 const User = require('../models/User') 
 const bcrypt = require('bcrypt') 
+const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 
 
@@ -18,6 +19,29 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ error: 'Error fetching users' })
   }
 }
+
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body
+
+  try {
+    const user = await User.findOne({ email })
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid email or password.' })
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid email or password.' })
+    }
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' })
+
+    res.json({ token })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: 'Error logging in.' })
+  }
+};
 
 // GET a single user by ID
 exports.getUserById = async (req, res) => {
