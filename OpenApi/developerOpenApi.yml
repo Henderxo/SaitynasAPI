@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Developers API
-  description: API to manage developers, including CRUD operations
+  description: API to manage developers, including CRUD operations with authentication
   version: 1.0.0
   contact:
     name: API Support
@@ -12,6 +12,40 @@ servers:
     description: Local development server
 
 paths:
+  /login:
+    post:
+      summary: User login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully logged in, returns a JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Unauthorized - Invalid credentials
+        '500':
+          description: Error during login
+
   /developers:
     get:
       summary: Get all developers
@@ -24,6 +58,8 @@ paths:
             type: string
             enum: [userId]
           description: Expand related user data
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: A list of developers
@@ -45,6 +81,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DeveloperInput'
+      security:
+        - BearerAuth: []
       responses:
         '201':
           description: Created developer
@@ -75,6 +113,8 @@ paths:
             type: string
             enum: [userId]
           description: Expand related user data
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: A developer object
@@ -104,6 +144,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DeveloperInput'
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Updated developer object
@@ -129,6 +171,8 @@ paths:
           schema:
             type: string
           description: The developer ID
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Deleted developer
@@ -149,6 +193,8 @@ paths:
           schema:
             type: string
           description: The developer ID
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: List of games developed by the developer
@@ -163,39 +209,13 @@ paths:
         '500':
           description: Error fetching games
 
-  /developers/{developerId}/comments:
-    get:
-      summary: Get comments for all games by developer
-      tags:
-        - Developers
-      parameters:
-        - name: developerId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: The developer ID
-        - name: expand
-          in: query
-          schema:
-            type: string
-            enum: [gameId, userId]
-          description: Expand related game or user data
-      responses:
-        '200':
-          description: List of comments for games by the developer
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Comment'
-        '404':
-          description: Developer not found
-        '500':
-          description: Error fetching comments
-
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     Developer:
       type: object
@@ -281,23 +301,3 @@ components:
         language: Japanese
         playerType: Multiplayer
         developerId: 67081490ab3278bc70ee582c
-
-    Comment:
-      type: object
-      properties:
-        id:
-          type: string
-          description: The unique identifier of the comment
-        content:
-          type: string
-        gameId:
-          type: string
-          description: The ID of the associated game
-        userId:
-          type: string
-          description: The ID of the user who made the comment
-      example:
-        id: 6709d9e3f82b1a1d7b523c90
-        content: Great game, really enjoyed it!
-        gameId: 670aa9037ca2d60776b523e8
-        userId: 670808e1b28f81ef82392ec5
