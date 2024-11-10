@@ -78,11 +78,9 @@ exports.getCommentById = async (req, res) => {
 // POST a new comment
 exports.createComment = async (req, res) => {
   try {
-    const { title, body, gameId, userId } = req.body 
+    const { title, body, gameId } = req.body 
+    const userId = req.user.id
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(404).json({ error: 'User not found' })
-    }
 
     if (!mongoose.Types.ObjectId.isValid(gameId)) {
       return res.status(404).json({ error: 'Game not found' })
