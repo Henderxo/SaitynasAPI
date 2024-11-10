@@ -20,6 +20,50 @@ exports.getAllUsers = async (req, res) => {
   }
 }
 
+
+//Needs some more added to this
+exports.refreshToken = async (req, res) => {
+  const { refreshToken } = req.body; 
+
+  if (!refreshToken) {
+    return res.sendStatus(401); 
+  }
+
+  try {
+    // Verify the refresh token
+    const payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    const user = await User.findById(payload.userId);
+
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.sendStatus(403); 
+    }
+
+    const accessToken = jwt.sign({ userId: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+    res.json({ accessToken });
+  } catch (error) {
+    console.error(error);
+    return res.sendStatus(403); 
+  }
+};
+//Needs some more added to this
+exports.logoutUser = async (req, res) => {
+  const { refreshToken } = req.body; 
+
+  if (!refreshToken) {
+    return res.sendStatus(204);
+  }
+
+  const user = await User.findOne({ refreshToken });
+
+  if (user) {
+    user.refreshToken = null;
+    await user.save();
+  }
+
+  res.sendStatus(204); // No content
+};
+
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body
 
@@ -35,7 +79,10 @@ exports.loginUser = async (req, res) => {
     }
     // Generate JWT token
     const token = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' })
-
+    const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    user.refreshToken = refreshToken;
+    await user.save();
+   
     res.json({ token })
   } catch (error) {
     console.log(error)
@@ -116,6 +163,7 @@ exports.createUser = async (req, res) => {
 // PUT (update) an existing user
 exports.updateUser = async (req, res) => {
   try {
+
     const { username, email, password, type } = req.body 
     if(!username || !email || !password || !type){
       return res.status(400).json({ error: 'Need all fields' }) 
@@ -123,10 +171,33 @@ exports.updateUser = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'User not found' })
     }
+
+    if (req.user.id !== req.params.id && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to update this user' });
+    }
+
+    
     const validTypes = ['admin', 'dev', 'guest'] 
     if (!validTypes.includes(type)) {
       return res.status(422).json({ error: 'Invalid user type. Valid types are: admin, dev, guest' }) 
     }
+
+    const existingUser = await User.findById(req.params.id);
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (type && type !== existingUser.type) {
+      if (req.user.type !== 'admin') {
+        return res.status(403).json({ error: 'You do not have permission to change the user type' });
+      }
+
+      const validTypes = ['admin', 'dev', 'guest'];
+      if (!validTypes.includes(type)) {
+        return res.status(422).json({ error: 'Invalid user type. Valid types are: admin, dev, guest' });
+      }
+    }
+
 
     if (email && !isValidEmail(email)) {
       return res.status(422).json({ error: 'Invalid email format' }) 
@@ -157,8 +228,12 @@ exports.updateUser = async (req, res) => {
 // DELETE a user
 exports.deleteUser = async (req, res) => {
   try {
+
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'User not found' })
+    }
+    if (req.user.id !== id && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to delete this user' });
     }
     const deletedUser = await User.findByIdAndDelete(req.params.id)  
     if (deletedUser) {

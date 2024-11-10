@@ -100,6 +100,10 @@ exports.createGame = async (req, res) => {
       return res.status(404).json({ error: 'Developer not found.' }) 
     }
 
+    if (req.user.id !== developer.userId.toString() && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to create this game' });
+    }
+
     const newGame = new Game({
       title,
       genre,
@@ -124,12 +128,17 @@ exports.updateGame = async (req, res) => {
       title, genre, platform, controllerSupport,
       language, playerType, developerId
     } = req.body 
+
+    
+
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Game not found' })
     }
+
     if (!mongoose.Types.ObjectId.isValid(developerId)) {
       return res.status(404).json({ error: 'Developer not found' })
     }
+
     if(!title || !genre || !platform || !controllerSupport || !language || !playerType || !developerId){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
@@ -140,13 +149,17 @@ exports.updateGame = async (req, res) => {
     if (genre && !Object.values(gameGenres).includes(genre)) {
       return res.status(422).json({ error: 'Invalid game genre.' }) 
     }
-    if(developerId){
-      const developer = await Developer.findById(developerId) 
-      if (!developer) {
-        return res.status(404).json({ error: 'Developer not found.' }) 
-      }
+
+
+    const developer = await Developer.findById(developerId) 
+    if (!developer) {
+      return res.status(404).json({ error: 'Developer not found.' }) 
     }
+
     
+    if (req.user.id !== developer.userId.toString() && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to update this game' });
+    }
 
     const updatedGame = await Game.findByIdAndUpdate(
       req.params.id,
@@ -169,6 +182,14 @@ exports.deleteGame = async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Game not found' })
+    }
+    const game = await Game.findById(req.params.id).populate('developerId');
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+    const developerUserId = game.developerId.userId.toString();
+    if (req.user.id !== developerUserId && userType !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to delete this game' });
     }
     const deletedGame = await Game.findByIdAndDelete(req.params.id) 
     if (deletedGame) {

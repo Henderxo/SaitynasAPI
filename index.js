@@ -33,34 +33,36 @@ app.use('/api-docs/games', swaggerUi.serveFiles(gamesApiSpec), swaggerUi.setup(g
 
 //Authorization routes
 app.get('/login', usersController.loginUser)
+app.post('/refresh-token', usersController.refreshToken);
+app.post('/logout', usersController.logoutUser);
 
 // User routes
 app.get('/users', usersController.getAllUsers) 
 app.get('/users/:id', usersController.getUserById) 
 app.post('/users', usersController.createUser) 
-app.put('/users/:id', usersController.updateUser) 
-app.delete('/users/:id', usersController.deleteUser) 
+app.put('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), usersController.updateUser) 
+app.delete('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), usersController.deleteUser) 
 
 // Game routes
 app.get('/games', gamesController.getAllGames) 
 app.get('/games/:id', gamesController.getGameById) 
 app.post('/games',  auth, authorize(['admin', 'dev']), gamesController.createGame) 
-app.put('/games/:id', gamesController.updateGame) 
-app.delete('/games/:id', gamesController.deleteGame) 
+app.put('/games/:id', auth, authorize(['admin', 'dev']), gamesController.updateGame) 
+app.delete('/games/:id', auth, authorize(['admin', 'dev']), gamesController.deleteGame) 
 
 // Developer routes
 app.get('/developers', developersController.getAllDevelopers) 
 app.get('/developers/:id', developersController.getDeveloperById) 
 app.post('/developers', auth, authorize(['admin']), developersController.createDeveloper) 
-app.put('/developers/:id', developersController.updateDeveloper) 
-app.delete('/developers/:id', developersController.deleteDeveloper) 
+app.put('/developers/:id', auth, authorize(['admin', 'dev']), developersController.updateDeveloper) 
+app.delete('/developers/:id', auth, authorize(['admin', 'dev']), developersController.deleteDeveloper) 
 
 // Comment routes
 app.get('/comments', commentsController.getAllComments)
 app.get('/comments/:id', commentsController.getCommentById) 
 app.post('/comments', auth, authorize(['admin', 'dev', 'guest']), commentsController.createComment) 
-app.put('/comments/:id', commentsController.updateComment) 
-app.delete('/comments/:id', commentsController.deleteComment) 
+app.put('/comments/:id', auth, authorize(['admin', 'dev', 'guest']),  commentsController.updateComment) 
+app.delete('/comments/:id', auth, authorize(['admin', 'dev', 'guest']), commentsController.deleteComment) 
 
 
 // More routes
@@ -68,6 +70,7 @@ app.get('/users/:userId/developers', usersController.getUsersDevelopers)
 app.get('/developers/:developerId/comments', developersController.getCommentsByDeveloper);
 app.get('/developers/:developerId/games', gamesController.getGamesByDeveloper)
 app.get('/games/:gameId/comments', commentsController.getCommentsByGame) 
+app.get('/developers/:developerId/games/:gameId/comments/:commentId', commentsController.getSpecificComment)
 
 // Start the server
 app.listen(PORT, () => {

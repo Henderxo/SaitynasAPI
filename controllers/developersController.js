@@ -121,12 +121,28 @@ exports.updateDeveloper = async (req, res) => {
     if(!name || !founder || !founded || !headquarters || !userId){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
-    if(req.body.userId){
-      const user = await User.findById(req.body.userId) 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' }) 
+
+    const user = await User.findById(req.body.userId) 
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' }) 
+    }
+
+    const developer = await Developer.findById(req.params.id);
+    if (!developer) {
+      return res.status(404).json({ error: 'Developer not found' });
+    }
+
+    if (userId && userId !== developer.userId.toString()) {
+      if (req.user.type !== 'admin') {
+        return res.status(403).json({ error: 'You do not have permission to change the user controlling this developer' });
       }
     }
+
+    if (req.user.id !== developer.userId.toString() && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to update this developer' });
+    }
+
+    
 
     const updatedDeveloper = await Developer.findByIdAndUpdate(
       req.params.id,
@@ -140,7 +156,7 @@ exports.updateDeveloper = async (req, res) => {
       res.status(404).json({ error: 'Developer not found' }) 
     }
   } catch (error) {
-
+    console.log(error)
     res.status(500).json({ error: 'Bad request' }) 
   }
 } 
@@ -151,6 +167,16 @@ exports.deleteDeveloper = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Developer not found' })
     }
+
+    const developer = await Developer.findById(req.params.id);
+    if (!developer) {
+      return res.status(404).json({ error: 'Developer not found' });
+    }
+
+    if (req.user.id !== developer.userId.toString() && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to delete this developer' });
+    }
+
     const deletedDeveloper = await Developer.findByIdAndDelete(req.params.id) 
 
     if (deletedDeveloper) {

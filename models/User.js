@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
-  type: { type: String, enum: ['admin', 'dev', 'guest'], required: true }
+  type: { type: String, enum: ['admin', 'dev', 'guest'], required: true },
+  refreshToken: { type: String }
 },{versionKey: false }) 
 
 userSchema.pre('save', async function (next) {

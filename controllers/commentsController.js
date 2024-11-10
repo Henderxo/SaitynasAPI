@@ -2,6 +2,7 @@ const Comment = require('../models/Comment')
 const User = require('../models/User') 
 const Game = require('../models/Game')
 const mongoose = require('mongoose')
+const Developer = require('../models/Developer')
 
 
 // GET all comments for a specific game
@@ -129,6 +130,15 @@ exports.updateComment = async (req, res) => {
       return res.status(404).json({ error: 'Game not found' })
     }
 
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    if (comment.userId.toString() !== req.user.id && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to delete this comment' });
+    }
+
     const user = await User.findById(userId) 
     if (!user) {
       return res.status(404).json({ error: 'User not found' }) 
@@ -162,6 +172,15 @@ exports.deleteComment = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Comment not found' })
     }
+
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    if (comment.userId.toString() !== req.user.id && req.user.type !== 'admin') {
+      return res.status(403).json({ error: 'You do not have permission to delete this comment' });
+    }
     const deletedComment = await Comment.findByIdAndDelete(req.params.id) 
     if (deletedComment) {
       res.json(deletedComment) 
@@ -172,3 +191,36 @@ exports.deleteComment = async (req, res) => {
     res.status(500).json({ error: 'Server error' }) 
   }
 } 
+
+
+
+exports.getSpecificComment = async (req, res) => {
+  try {
+    const { developerId, gameId, commentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(developerId) ||
+        !mongoose.Types.ObjectId.isValid(gameId) ||
+        !mongoose.Types.ObjectId.isValid(commentId)) {
+      return res.status(404).json({ error: 'Invalid IDs provided' });
+    }
+
+    const developer = await Developer.findOne({ _id: developerId });
+    if (!developer) {
+      return res.status(404).json({ error: 'Developer not found' });
+    }
+
+    const game = await Game.findOne({ _id: gameId, developerId });
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found for this developer' });
+    }
+
+    const comment = await Comment.findOne({ _id: commentId, gameId });
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found for this game' });
+    }
+
+    res.json(comment);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching the comment' });
+  }
+};
