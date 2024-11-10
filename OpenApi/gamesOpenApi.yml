@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Games API
-  description: API to manage games, including CRUD operations
+  description: API to manage games, including CRUD operations with authentication.
   version: 1.0.0
   contact:
     name: API Support
@@ -12,6 +12,35 @@ servers:
     description: Local development server
 
 paths:
+  /login:
+    post:
+      summary: User login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful, returns JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Unauthorized, invalid credentials
+
   /games:
     get:
       summary: Get all games
@@ -39,6 +68,8 @@ paths:
       summary: Create a new game
       tags:
         - Games
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -86,11 +117,12 @@ paths:
           description: Game not found
         '500':
           description: Error fetching game
-
     put:
       summary: Update game by ID
       tags:
         - Games
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -117,11 +149,12 @@ paths:
           description: Validation error for input data
         '500':
           description: Error updating game
-
     delete:
       summary: Delete game by ID
       tags:
         - Games
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -252,3 +285,9 @@ components:
         language: Japanese
         playerType: Multiplayer
         developerId: 67081490ab3278bc70ee582c
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

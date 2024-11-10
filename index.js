@@ -33,8 +33,7 @@ app.use('/api-docs/games', swaggerUi.serveFiles(gamesApiSpec), swaggerUi.setup(g
 
 //Authorization routes
 app.post('/login', usersController.loginUser)
-app.post('/refresh-token', usersController.refreshToken);
-app.post('/logout', usersController.logoutUser);
+
 
 // User routes
 app.get('/users', usersController.getAllUsers) 
