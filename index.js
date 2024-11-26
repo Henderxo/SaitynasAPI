@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const path = require('path'); 
+const cors = require('cors');
 
 const usersController = require('./controllers/usersController') 
 const gamesController = require('./controllers/gamesController') 
@@ -24,6 +25,8 @@ const app = express()
 const PORT = process.env.PORT || 3000 
 
 app.use(express.json()) 
+
+app.use(cors())
 
 //Swagger
 app.use('/api-docs/users', swaggerUi.serveFiles(usersApiSpec), swaggerUi.setup(usersApiSpec));
