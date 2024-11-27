@@ -93,7 +93,7 @@ exports.getDeveloperById = async (req, res) => {
 // POST a new developer
 exports.createDeveloper = async (req, res) => {
   try {
-    const { name, founder, founded, headquarters, userId } = req.body 
+    const { name, founder, founded, headquarters, userId, description } = req.body 
     if(!req.file){
       return res.status(404).json({ error: 'Photo is required' })
     }
@@ -112,7 +112,8 @@ exports.createDeveloper = async (req, res) => {
       founded,
       headquarters,
       userId,
-      photo: req.file?.buffer
+      photo: req.file?.buffer,
+      description
     }) 
 
 
@@ -130,7 +131,7 @@ exports.updateDeveloper = async (req, res) => {
 
     const {
       name, founder, founded, headquarters,
-      userId
+      userId, description
     } = req.body 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Developer not found' })
@@ -138,7 +139,7 @@ exports.updateDeveloper = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({ error: 'User not found' })
     }
-    if(!name || !founder || !founded || !headquarters || !userId || !req.file){
+    if(!name || !founder || !founded || !headquarters || !userId || !req.file || !description){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
 
@@ -162,7 +163,7 @@ exports.updateDeveloper = async (req, res) => {
       return res.status(403).json({ error: 'You do not have permission to update this developer' });
     }
 
-    const updatedFields = { name, founder, founded, headquarters, userId };
+    const updatedFields = { name, founder, founded, headquarters, userId, description };
     updatedFields.photo = req.file.buffer;
 
 

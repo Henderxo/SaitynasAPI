@@ -102,7 +102,7 @@ exports.createGame = async (req, res) => {
   try {
     const {
       title, genre, platform, controllerSupport,
-      language, playerType, developerId
+      language, playerType, developerId, description
     } = req.body 
 
 
@@ -136,7 +136,8 @@ exports.createGame = async (req, res) => {
       language,
       playerType,
       developerId,
-      photo: req.file?.buffer
+      photo: req.file?.buffer,
+      description
     }) 
 
     await newGame.save() 
@@ -151,7 +152,7 @@ exports.updateGame = async (req, res) => {
   try {
     const {
       title, genre, platform, controllerSupport,
-      language, playerType, developerId
+      language, playerType, developerId, description
     } = req.body 
 
     
@@ -175,21 +176,17 @@ exports.updateGame = async (req, res) => {
       return res.status(422).json({ error: 'Invalid game genre.' }) 
     }
 
-
-
-
     const developer = await Developer.findById(developerId) 
     if (!developer) {
       return res.status(404).json({ error: 'Developer not found.' }) 
     }
 
-    
     if (req.user.id !== developer.userId.toString() && req.user.type !== 'admin') {
       return res.status(403).json({ error: 'You do not have permission to update this game' });
     }
     
 
-    const updatedFields = { title, genre, platform, controllerSupport, language, playerType, developerId };
+    const updatedFields = { title, genre, platform, controllerSupport, language, playerType, developerId, description };
     updatedFields.photo = req.file.buffer;
 
 

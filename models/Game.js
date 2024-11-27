@@ -10,7 +10,8 @@ const gameSchema = new mongoose.Schema({
   language: { type: String, required: true },
   playerType: { type: String, enum: Object.values(playerTypes), required: true },
   developerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Developer', required: true },
-  photo: { type: Buffer }
+  photo: { type: Buffer, required: true },
+  description: { type: String, required: true },
 },{versionKey: false }) 
 
 
