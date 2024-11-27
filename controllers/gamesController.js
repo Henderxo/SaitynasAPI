@@ -2,7 +2,7 @@ const Game = require('../models/Game')
 const { playerTypes, gameGenres, gamePlatforms } = require('../assets/enums') 
 const Developer = require('../models/Developer')
 const mongoose = require('mongoose')
-
+const { getMimeType } = require('../services/photoBuffer');
 
 exports.getGamesByDeveloper = async (req, res) => {
   try {
@@ -22,7 +22,14 @@ exports.getGamesByDeveloper = async (req, res) => {
 
     const games = await gamesQuery
     if(games){
-      res.json(games)
+      const gamesWithPhotos = games.map(game => {
+        const photoBase64 = game.photo ? game.photo.toString('base64') : null;
+        return {
+          ...game.toObject(),
+          photo: photoBase64, // Only Base64 string, no MIME type
+        };
+      });
+      res.json(gamesWithPhotos);
     } else{
       return res.status(404).json({ error: 'Game not found' })
     }
@@ -45,7 +52,14 @@ exports.getAllGames = async (req, res) => {
 
     const games = await gamesQuery
     if(games){
-      res.json(games)
+      const gamesWithPhotos = games.map(game => {
+        const photoBase64 = game.photo ? game.photo.toString('base64') : null;
+        return {
+          ...game.toObject(),
+          photo: photoBase64, // Only Base64 string, no MIME type
+        };
+      });
+      res.json(gamesWithPhotos)
     } else{
       return res.status(404).json({ error: 'Game not found' })
     }
@@ -69,8 +83,15 @@ exports.getGameById = async (req, res) => {
     }
 
     const game = await gameQuery 
-    res.json(game) 
+    if (!game) {
+      return res.status(404).json({ error: 'Game not found' });
+    }
+    const photoBase64 = game.photo ? game.photo.toString('base64') : null;
 
+    res.json({
+      ...game.toObject(),
+      photo: photoBase64, // Only Base64 string, no MIME type
+    });
   } catch (error) {
     res.status(500).json({ error: 'Server error' }) 
   }
@@ -94,6 +115,9 @@ exports.createGame = async (req, res) => {
     if (!Object.values(gameGenres).includes(genre)) {
       return res.status(422).json({ error: 'Invalid game genre.' }) 
     }
+    if(!req.file){
+      return res.status(404).json({ error: 'Photo field is required' })
+    }
 
     const developer = await Developer.findById(developerId) 
     if (!developer) {
@@ -111,7 +135,8 @@ exports.createGame = async (req, res) => {
       controllerSupport,
       language,
       playerType,
-      developerId 
+      developerId,
+      photo: req.file?.buffer
     }) 
 
     await newGame.save() 
@@ -139,7 +164,7 @@ exports.updateGame = async (req, res) => {
       return res.status(404).json({ error: 'Developer not found' })
     }
 
-    if(!title || !genre || !platform || !controllerSupport || !language || !playerType || !developerId){
+    if(!title || !genre || !platform || !controllerSupport || !language || !playerType || !developerId || !req.file){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
     if (playerType && !Object.values(playerTypes).includes(playerType)) {
@@ -151,6 +176,8 @@ exports.updateGame = async (req, res) => {
     }
 
 
+
+
     const developer = await Developer.findById(developerId) 
     if (!developer) {
       return res.status(404).json({ error: 'Developer not found.' }) 
@@ -160,12 +187,17 @@ exports.updateGame = async (req, res) => {
     if (req.user.id !== developer.userId.toString() && req.user.type !== 'admin') {
       return res.status(403).json({ error: 'You do not have permission to update this game' });
     }
+    
+
+    const updatedFields = { title, genre, platform, controllerSupport, language, playerType, developerId };
+    updatedFields.photo = req.file.buffer;
+
 
     const updatedGame = await Game.findByIdAndUpdate(
       req.params.id,
-      { title, genre, platform, controllerSupport, language, playerType, developerId },
-      { new: true, runValidators: true } 
-    ) 
+      updatedFields,
+      { new: true, runValidators: true }
+    );
 
     if (updatedGame) {
       res.json(updatedGame) 

@@ -9,7 +9,8 @@ const gameSchema = new mongoose.Schema({
   controllerSupport: { type: Boolean, required: true },
   language: { type: String, required: true },
   playerType: { type: String, enum: Object.values(playerTypes), required: true },
-  developerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Developer', required: true }
+  developerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Developer', required: true },
+  photo: { type: Buffer }
 },{versionKey: false }) 
 
 

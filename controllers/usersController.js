@@ -14,7 +14,16 @@ const isValidEmail = (email) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
-    res.json(users)
+    if(users){
+      const usersWithPhotos = users.map(user => {
+        const photoBase64 = user.photo ? user.photo.toString('base64') : null;
+        return {
+          ...user.toObject(),
+          photo: photoBase64, // Only Base64 string, no MIME type
+        };
+      });
+      res.json(usersWithPhotos)
+    }
   } catch (error) {
     res.status(500).json({ error: 'Error fetching users' })
   }
@@ -96,7 +105,12 @@ exports.getUserById = async (req, res) => {
     const user = await User.findById(req.params.id)
     
     if (user) {
-      res.json(user)
+      const photoBase64 = user.photo ? user.photo.toString('base64') : null;
+
+    res.json({
+      ...user.toObject(),
+      photo: photoBase64, // Only Base64 string, no MIME type
+    });
     } else {
       res.status(404).json({ error: 'User not found' })
     }
@@ -107,21 +121,37 @@ exports.getUserById = async (req, res) => {
 
 exports.getUsersDevelopers = async (req, res) => {
   try {
+    // Check if the userId is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-      return res.status(404).json({ error: 'User not found' })
+      return res.status(404).json({ error: 'User not found' });
     }
-    let userQuery = Developer.find({ userId: req.params.userId })
 
-    const user = await userQuery
-    if (user) {
-      res.json(user)
+    // Query developers by userId
+    let developersQuery = Developer.find({ userId: req.params.userId });
+
+    // Retrieve developers
+    const developers = await developersQuery;
+
+    if (developers) {
+      // Process the developers to include the photo as a Base64 string
+      const developersWithPhotos = developers.map(developer => {
+        const photoBase64 = developer.photo ? developer.photo.toString('base64') : null;
+
+        return {
+          ...developer.toObject(),
+          photo: photoBase64, // Add photo as Base64 string
+        };
+      });
+
+      res.json(developersWithPhotos); // Return the developers with photos
     } else {
-      res.status(404).json({ error: 'User not found' })
+      res.status(404).json({ error: 'Developer(s) not found for this user' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Error getting user developers' })
+    console.error(error);
+    res.status(500).json({ error: 'Error getting user developers' });
   }
-} 
+};
 
 // POST a new user
 exports.createUser = async (req, res) => {
@@ -133,6 +163,9 @@ exports.createUser = async (req, res) => {
     if (!validTypes.includes(type)) {
       return res.status(422).json({ error: 'Invalid user type. Valid types are: admin, dev, guest' }) 
     }
+    if(!req.file){
+      return res.status(404).json({ error: 'Photo field is required' })
+    }
 
     if (!isValidEmail(email)) {
       return res.status(400).json({ error: 'Invalid email format' }) 
@@ -143,7 +176,8 @@ exports.createUser = async (req, res) => {
       email,
       password, 
       type,
-      created_at: new Date()
+      created_at: new Date(),
+      photo: req.file?.buffer
     }) 
 
     const savedUser = await newUser.save() 
@@ -162,7 +196,7 @@ exports.updateUser = async (req, res) => {
   try {
 
     const { username, email, password, type } = req.body 
-    if(!username || !email || !password || !type){
+    if(!username || !email || !password || !type || !req.file){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -204,7 +238,7 @@ exports.updateUser = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10) 
     updatedData.password = await bcrypt.hash(password, salt) 
-    
+    updatedData.photo = req.file.buffer;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,

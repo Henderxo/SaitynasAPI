@@ -7,7 +7,8 @@ const developerSchema = new mongoose.Schema({
   founder: { type: String, required: true },
   founded: { type: Date, required: true },
   headquarters: { type: String, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  photo: { type: Buffer }
 },{versionKey: false }) 
 
 developerSchema.pre('findOneAndDelete', async function (next) {

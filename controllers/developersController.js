@@ -4,6 +4,7 @@ const User = require('../models/User')
 const Game = require('../models/Game')
 const Comment = require('../models/Comment')
 const mongoose = require('mongoose')
+const { getMimeType } = require('../services/photoBuffer');
 
 // GET all developers
 exports.getAllDevelopers = async (req, res) => {
@@ -15,8 +16,17 @@ exports.getAllDevelopers = async (req, res) => {
       developersQuery - developersQuery.populate('userId')
     }
 
-    const developers = await developersQuery
-    res.json(developers) 
+    const developers = await developersQuery;
+    const developersWithPhotos = developers.map(developer => {
+      const photoBase64 = developer.photo ? developer.photo.toString('base64') : null;
+      return {
+        ...developer.toObject(),
+        photo: photoBase64, // Only Base64 string, no MIME type
+      };
+    });
+
+
+    res.json(developersWithPhotos) 
   } catch (error) {
     res.status(500).json({ error: 'Server error' }) 
   }
@@ -63,10 +73,15 @@ exports.getDeveloperById = async (req, res) => {
     if(expand && expand.includes('userId')){
       developersQuery - developersQuery.populate('userId')
     }
+    const developer = await developersQuery;
 
-    const developer = await developersQuery 
     if (developer) {
-      res.json(developer) 
+      const photoBase64 = developer.photo ? developer.photo.toString('base64') : null;
+
+      res.json({
+        ...developer.toObject(),
+        photo: photoBase64, // Only Base64 string, no MIME type
+      });
     } else {
       res.status(404).json({ error: 'Developer not found' }) 
     }
@@ -79,7 +94,9 @@ exports.getDeveloperById = async (req, res) => {
 exports.createDeveloper = async (req, res) => {
   try {
     const { name, founder, founded, headquarters, userId } = req.body 
-
+    if(!req.file){
+      return res.status(404).json({ error: 'Photo is required' })
+    }
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({ error: 'User not found' })
     }
@@ -94,8 +111,11 @@ exports.createDeveloper = async (req, res) => {
       founder,
       founded,
       headquarters,
-      userId
+      userId,
+      photo: req.file?.buffer
     }) 
+
+
 
     await newDeveloper.save()  
     res.status(201).json(newDeveloper) 
@@ -118,7 +138,7 @@ exports.updateDeveloper = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({ error: 'User not found' })
     }
-    if(!name || !founder || !founded || !headquarters || !userId){
+    if(!name || !founder || !founded || !headquarters || !userId || !req.file){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
 
@@ -142,11 +162,13 @@ exports.updateDeveloper = async (req, res) => {
       return res.status(403).json({ error: 'You do not have permission to update this developer' });
     }
 
-    
+    const updatedFields = { name, founder, founded, headquarters, userId };
+    updatedFields.photo = req.file.buffer;
+
 
     const updatedDeveloper = await Developer.findByIdAndUpdate(
       req.params.id,
-      { name, founder, founded, headquarters, userId},
+      updatedFields,
       { new: true, runValidators: true }
     ) 
 

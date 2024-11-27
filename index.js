@@ -6,6 +6,11 @@ const YAML = require('yamljs');
 const path = require('path'); 
 const cors = require('cors');
 
+const multer = require('multer');
+
+const storage = multer.memoryStorage(); 
+const upload = multer({ storage }); 
+
 const usersController = require('./controllers/usersController') 
 const gamesController = require('./controllers/gamesController') 
 const developersController = require('./controllers/developersController') 
@@ -48,15 +53,15 @@ app.delete('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), usersContr
 // Game routes
 app.get('/games', gamesController.getAllGames) 
 app.get('/games/:id', gamesController.getGameById) 
-app.post('/games',  auth, authorize(['admin', 'dev']), gamesController.createGame) 
+app.post('/games',  auth, authorize(['admin', 'dev']),upload.single('photo') , gamesController.createGame) 
 app.put('/games/:id', auth, authorize(['admin', 'dev']), gamesController.updateGame) 
 app.delete('/games/:id', auth, authorize(['admin', 'dev']), gamesController.deleteGame) 
 
 // Developer routes
 app.get('/developers', developersController.getAllDevelopers) 
 app.get('/developers/:id', developersController.getDeveloperById) 
-app.post('/developers', auth, authorize(['admin']), developersController.createDeveloper) 
-app.put('/developers/:id', auth, authorize(['admin', 'dev']), developersController.updateDeveloper) 
+app.post('/developers', auth, authorize(['admin']), upload.single('photo'), developersController.createDeveloper) 
+app.put('/developers/:id', auth, authorize(['admin', 'dev']), upload.single('photo'), developersController.updateDeveloper) 
 app.delete('/developers/:id', auth, authorize(['admin', 'dev']), developersController.deleteDeveloper) 
 
 // Comment routes
