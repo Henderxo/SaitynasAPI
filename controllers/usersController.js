@@ -74,25 +74,38 @@ exports.logoutUser = async (req, res) => {
 };
 
 exports.loginUser = async (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: 'Invalid email or password.' })
+      return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid email or password.' })
+      return res.status(400).json({ error: 'Invalid email or password.' });
     }
+
     // Generate JWT token
-    const token = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' })
-   
-    res.json({ token })
+    const token = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    const photoBase64 = user.photo ? user.photo.toString('base64') : null;
+
+    // Send token and user information (excluding sensitive fields like password)
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        type: user.type,
+        photo: photoBase64
+      },
+    });
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: 'Error logging in.' })
+    console.log(error);
+    res.status(500).json({ error: 'Error logging in.' });
   }
 };
 
