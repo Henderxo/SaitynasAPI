@@ -96,7 +96,7 @@ exports.loginUser = async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        _id: user._id,
         username: user.username,
         email: user.email,
         type: user.type,
@@ -208,8 +208,8 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
 
-    const { username, email, password, type } = req.body 
-    if(!username || !email || !password || !type || !req.file){
+    const { username, email, password, type, photo } = req.body 
+    if(!username || !email || !password || !type || !(req.file||photo)){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -251,7 +251,7 @@ exports.updateUser = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10) 
     updatedData.password = await bcrypt.hash(password, salt) 
-    updatedData.photo = req.file.buffer;
+    updatedData.photo = req.file?req.file.buffer:Buffer.from(photo, 'base64');
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,

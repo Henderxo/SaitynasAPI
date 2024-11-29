@@ -100,6 +100,7 @@ exports.createDeveloper = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({ error: 'User not found' })
     }
+    console.log(req.file)
 
     const user = await User.findById(userId) 
     if (!user) {
@@ -128,10 +129,9 @@ exports.createDeveloper = async (req, res) => {
 // PUT (update) an existing developer
 exports.updateDeveloper = async (req, res) => {
   try {
-
     const {
       name, founder, founded, headquarters,
-      userId, description
+      userId, description, photo
     } = req.body 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Developer not found' })
@@ -139,7 +139,7 @@ exports.updateDeveloper = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({ error: 'User not found' })
     }
-    if(!name || !founder || !founded || !headquarters || !userId || !req.file || !description){
+    if(!name || !founder || !founded || !headquarters || !userId || !(req.file||photo) || !description){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
 
@@ -164,7 +164,7 @@ exports.updateDeveloper = async (req, res) => {
     }
 
     const updatedFields = { name, founder, founded, headquarters, userId, description };
-    updatedFields.photo = req.file.buffer;
+    updatedFields.photo = req.file?req.file.buffer:Buffer.from(photo, 'base64');
 
 
     const updatedDeveloper = await Developer.findByIdAndUpdate(

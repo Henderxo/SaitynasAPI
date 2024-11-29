@@ -47,14 +47,14 @@ app.post('/login', usersController.loginUser)
 app.get('/users', usersController.getAllUsers) 
 app.get('/users/:id', usersController.getUserById) 
 app.post('/users', usersController.createUser) 
-app.put('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), usersController.updateUser) 
-app.delete('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), usersController.deleteUser) 
+app.put('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), upload.single('photo'), usersController.updateUser) 
+app.delete('/users/:id', auth,  authorize(['admin', 'dev', 'guest']),  usersController.deleteUser) 
 
 // Game routes
 app.get('/games', gamesController.getAllGames) 
 app.get('/games/:id', gamesController.getGameById) 
 app.post('/games',  auth, authorize(['admin', 'dev']),upload.single('photo') , gamesController.createGame) 
-app.put('/games/:id', auth, authorize(['admin', 'dev']), gamesController.updateGame) 
+app.put('/games/:id', auth, authorize(['admin', 'dev']),upload.single('photo'), gamesController.updateGame) 
 app.delete('/games/:id', auth, authorize(['admin', 'dev']), gamesController.deleteGame) 
 
 // Developer routes

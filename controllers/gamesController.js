@@ -100,6 +100,7 @@ exports.getGameById = async (req, res) => {
 // POST a new game
 exports.createGame = async (req, res) => {
   try {
+    console.log('hello')
     const {
       title, genre, platform, controllerSupport,
       language, playerType, developerId, description
@@ -151,11 +152,11 @@ exports.createGame = async (req, res) => {
 exports.updateGame = async (req, res) => {
   try {
     const {
-      title, genre, platform, controllerSupport,
-      language, playerType, developerId, description
+      title, developerId, genre, platform, controllerSupport,
+      language, playerType, description, photo
     } = req.body 
 
-    
+    console.log(req.body)
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Game not found' })
@@ -165,7 +166,7 @@ exports.updateGame = async (req, res) => {
       return res.status(404).json({ error: 'Developer not found' })
     }
 
-    if(!title || !genre || !platform || !controllerSupport || !language || !playerType || !developerId || !req.file){
+    if(!title || !genre || !platform || !controllerSupport || !language || !playerType || !developerId || !(req.file||photo)){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
     if (playerType && !Object.values(playerTypes).includes(playerType)) {
@@ -185,9 +186,8 @@ exports.updateGame = async (req, res) => {
       return res.status(403).json({ error: 'You do not have permission to update this game' });
     }
     
-
     const updatedFields = { title, genre, platform, controllerSupport, language, playerType, developerId, description };
-    updatedFields.photo = req.file.buffer;
+    updatedFields.photo = req.file?req.file.buffer:Buffer.from(photo, 'base64');
 
 
     const updatedGame = await Game.findByIdAndUpdate(
