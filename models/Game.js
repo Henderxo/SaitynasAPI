@@ -14,6 +14,9 @@ const gameSchema = new mongoose.Schema({
   description: { type: String, required: true },
 },{versionKey: false }) 
 
+gameSchema.virtual('photoBase64').get(function () {
+  return this.photo ? this.photo.toString('base64') : null;
+});
 
 gameSchema.pre('findOneAndDelete', async function (next) {
   const gameId = this.getQuery()["_id"] 

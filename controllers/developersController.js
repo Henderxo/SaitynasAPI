@@ -100,7 +100,7 @@ exports.createDeveloper = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({ error: 'User not found' })
     }
-    console.log(req.file)
+
 
     const user = await User.findById(userId) 
     if (!user) {
@@ -133,6 +133,7 @@ exports.updateDeveloper = async (req, res) => {
       name, founder, founded, headquarters,
       userId, description, photo
     } = req.body 
+
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Developer not found' })
     }
@@ -179,7 +180,7 @@ exports.updateDeveloper = async (req, res) => {
       res.status(404).json({ error: 'Developer not found' }) 
     }
   } catch (error) {
-    console.log(error)
+
     res.status(500).json({ error: 'Bad request' }) 
   }
 } 
@@ -208,7 +209,7 @@ exports.deleteDeveloper = async (req, res) => {
       res.status(404).json({ error: 'Developer not found' }) 
     }
   } catch (error) {
-    console.log(error)
+  
     res.status(500).json({ error: 'Server error' }) 
   }
 } 

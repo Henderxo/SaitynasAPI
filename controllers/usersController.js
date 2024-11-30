@@ -13,7 +13,7 @@ const isValidEmail = (email) => {
 // GET all users
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
+    const users = await User.find().select('-password'); 
     if(users){
       const usersWithPhotos = users.map(user => {
         const photoBase64 = user.photo ? user.photo.toString('base64') : null;
@@ -51,7 +51,6 @@ exports.refreshToken = async (req, res) => {
 
     res.json({ accessToken });
   } catch (error) {
-    console.error(error);
     return res.sendStatus(403); 
   }
 };
@@ -104,7 +103,7 @@ exports.loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log(error);
+
     res.status(500).json({ error: 'Error logging in.' });
   }
 };
@@ -115,7 +114,7 @@ exports.getUserById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'User not found' })
     }
-    const user = await User.findById(req.params.id)
+    const user = await User.findById(req.params.id).select('-password'); 
     
     if (user) {
       const photoBase64 = user.photo ? user.photo.toString('base64') : null;
@@ -161,7 +160,7 @@ exports.getUsersDevelopers = async (req, res) => {
       res.status(404).json({ error: 'Developer(s) not found for this user' });
     }
   } catch (error) {
-    console.error(error);
+
     res.status(500).json({ error: 'Error getting user developers' });
   }
 };
@@ -171,7 +170,6 @@ exports.createUser = async (req, res) => {
   try {
 
     const { username, email, password, type } = req.body 
-
     const validTypes = ['admin', 'dev', 'guest'] 
     if (!validTypes.includes(type)) {
       return res.status(422).json({ error: 'Invalid user type. Valid types are: admin, dev, guest' }) 
@@ -208,8 +206,8 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
 
-    const { username, email, password, type, photo } = req.body 
-    if(!username || !email || !password || !type || !(req.file||photo)){
+    const { username, email, type, password, photo } = req.body 
+    if(!username || !email || !type || !(req.file||photo)){
       return res.status(400).json({ error: 'Need all fields' }) 
     }
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -220,7 +218,6 @@ exports.updateUser = async (req, res) => {
       return res.status(403).json({ error: 'You do not have permission to update this user' });
     }
 
-    
     const validTypes = ['admin', 'dev', 'guest'] 
     if (!validTypes.includes(type)) {
       return res.status(422).json({ error: 'Invalid user type. Valid types are: admin, dev, guest' }) 
@@ -248,9 +245,8 @@ exports.updateUser = async (req, res) => {
     }
 
     let updatedData = { username, email, type } 
-
     const salt = await bcrypt.genSalt(10) 
-    updatedData.password = await bcrypt.hash(password, salt) 
+    updatedData.password = password?await bcrypt.hash(password, salt):existingUser.password 
     updatedData.photo = req.file?req.file.buffer:Buffer.from(photo, 'base64');
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -272,11 +268,11 @@ exports.updateUser = async (req, res) => {
 // DELETE a user
 exports.deleteUser = async (req, res) => {
   try {
-
+    const userId = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'User not found' })
     }
-    if (req.user.id !== id && req.user.type !== 'admin') {
+    if (req.user.id !== userId && req.user.type !== 'admin') {
       return res.status(403).json({ error: 'You do not have permission to delete this user' });
     }
     const deletedUser = await User.findByIdAndDelete(req.params.id)  
@@ -286,7 +282,6 @@ exports.deleteUser = async (req, res) => {
       res.status(404).json({ error: 'User not found' }) 
     }
   } catch (error) {
-    console.log(error)
     res.status(500).json({ error: 'Error deleting user' }) 
   }
 } 

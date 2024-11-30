@@ -9,8 +9,13 @@ const cors = require('cors');
 const multer = require('multer');
 
 const storage = multer.memoryStorage(); 
-const upload = multer({ storage }); 
-
+const upload = multer({
+  storage: storage,
+  limits: {
+    fieldSize: 10 * 1024 * 1024, // Set field size limit to 10 MB
+    fileSize: 10 * 1024 * 1024, // Set file size limit to 10 MB
+  },
+});
 const usersController = require('./controllers/usersController') 
 const gamesController = require('./controllers/gamesController') 
 const developersController = require('./controllers/developersController') 
@@ -46,7 +51,7 @@ app.post('/login', usersController.loginUser)
 // User routes
 app.get('/users', usersController.getAllUsers) 
 app.get('/users/:id', usersController.getUserById) 
-app.post('/users', usersController.createUser) 
+app.post('/users', upload.single('photo'), usersController.createUser) 
 app.put('/users/:id', auth,  authorize(['admin', 'dev', 'guest']), upload.single('photo'), usersController.updateUser) 
 app.delete('/users/:id', auth,  authorize(['admin', 'dev', 'guest']),  usersController.deleteUser) 
 
@@ -67,8 +72,8 @@ app.delete('/developers/:id', auth, authorize(['admin', 'dev']), developersContr
 // Comment routes
 app.get('/comments', commentsController.getAllComments)
 app.get('/comments/:id', commentsController.getCommentById) 
-app.post('/comments', auth, authorize(['admin', 'dev', 'guest']), commentsController.createComment) 
-app.put('/comments/:id', auth, authorize(['admin', 'dev', 'guest']),  commentsController.updateComment) 
+app.post('/comments', auth, authorize(['admin', 'dev', 'guest']), upload.single('photo'), commentsController.createComment) 
+app.put('/comments/:id', auth, authorize(['admin', 'dev', 'guest']), upload.single('photo'),  commentsController.updateComment) 
 app.delete('/comments/:id', auth, authorize(['admin', 'dev', 'guest']), commentsController.deleteComment) 
 
 

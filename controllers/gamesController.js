@@ -100,7 +100,7 @@ exports.getGameById = async (req, res) => {
 // POST a new game
 exports.createGame = async (req, res) => {
   try {
-    console.log('hello')
+
     const {
       title, genre, platform, controllerSupport,
       language, playerType, developerId, description
@@ -155,8 +155,6 @@ exports.updateGame = async (req, res) => {
       title, developerId, genre, platform, controllerSupport,
       language, playerType, description, photo
     } = req.body 
-
-    console.log(req.body)
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ error: 'Game not found' })
@@ -217,7 +215,7 @@ exports.deleteGame = async (req, res) => {
       return res.status(404).json({ error: 'Game not found' });
     }
     const developerUserId = game.developerId.userId.toString();
-    if (req.user.id !== developerUserId && userType !== 'admin') {
+    if (req.user.id !== developerUserId && req.user.type !== 'admin') {
       return res.status(403).json({ error: 'You do not have permission to delete this game' });
     }
     const deletedGame = await Game.findByIdAndDelete(req.params.id) 
@@ -227,6 +225,7 @@ exports.deleteGame = async (req, res) => {
       res.status(404).json({ error: 'Game not found' }) 
     }
   } catch (error) {
+  
     res.status(500).json({ error: 'Server error' }) 
   }
 } 
