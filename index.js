@@ -99,7 +99,7 @@ app.get('/games/:gameId/comments', commentsController.getCommentsByGame)
 app.get('/developers/:developerId/games/:gameId/comments/:commentId', commentsController.getSpecificComment)
 
 app.all('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'path_to_your_vue_app', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Start the server
