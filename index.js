@@ -41,7 +41,8 @@ app.use(express.json())
 
 const allowedOrigins = [
   'http://game-forum-gamma.vercel.app',   
-  'https://game-forum-gamma.vercel.app',  
+  'https://game-forum-gamma.vercel.app',
+  'https://game-forum-n9xg5enz7-henderxos-projects.vercel.app'
 ];
 
 app.use(cors({
