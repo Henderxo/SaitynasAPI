@@ -51,7 +51,7 @@ exports.refreshToken = async (req, res) => {
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,  
       secure: process.env.NODE_ENV === 'production',  
-      maxAge: 1 * 60 * 60 * 1000,  
+      maxAge: 60 * 60 * 1000,  
     });
 
     res.json({token: newAccessToken});
@@ -79,7 +79,7 @@ exports.logoutUser = async (req, res) => {
 };
 
 const generateTokens = (user) => {
-  const accessToken = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '10m' });
+  const accessToken = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' });
   const refreshToken = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   return { accessToken, refreshToken };
@@ -109,7 +109,7 @@ exports.loginUser = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 1 * 60 * 60 * 1000, 
+        maxAge: 60 * 60 * 1000, 
       })
       .cookie('refreshToken', refreshToken, {
         httpOnly: true,
