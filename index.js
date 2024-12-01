@@ -49,10 +49,6 @@ app.use(cors({
   origin: allowedOrigins, 
   credentials: true, 
 }));
-app.use(express.static(path.join(__dirname, 'dist')));
-app.all('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
 
 app.use(cookieParser());
 
