@@ -7,6 +7,9 @@ const path = require('path');
 const cors = require('cors');
 
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
+
+
 
 const storage = multer.memoryStorage(); 
 const upload = multer({
@@ -36,7 +39,12 @@ const PORT = process.env.PORT || 3000
 
 app.use(express.json()) 
 
-app.use(cors())
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  credentials: true, 
+}));
+
+app.use(cookieParser());
 
 //Swagger
 app.use('/api-docs/users', swaggerUi.serveFiles(usersApiSpec), swaggerUi.setup(usersApiSpec));
@@ -46,7 +54,7 @@ app.use('/api-docs/games', swaggerUi.serveFiles(gamesApiSpec), swaggerUi.setup(g
 
 //Authorization routes
 app.post('/login', usersController.loginUser)
-
+app.post('/refresh', usersController.refreshToken)
 
 // User routes
 app.get('/users', usersController.getAllUsers) 
@@ -86,7 +94,6 @@ app.get('/developers/:developerId/games/:gameId/comments/:commentId', commentsCo
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`) 
 }) 
 
 

@@ -9,9 +9,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   created_at: { type: Date, default: Date.now },
   type: { type: String, enum: ['admin', 'dev', 'guest'], required: true },
-  photo: { type: Buffer }
-},{versionKey: false }) 
-
+  photo: { type: Buffer },
+  refreshToken: { type: String }, // Add this field
+}, { versionKey: false });
 userSchema.pre('save', async function (next) {
   
   if (this.isModified('password')) {
@@ -24,7 +24,6 @@ userSchema.pre('save', async function (next) {
 
 userSchema.pre('findOneAndDelete', async function (next) {
   const userId = this.getQuery()["_id"] 
-  console.log(userId)
   await Comment.deleteMany({ userId }) 
   await Developer.deleteMany({ userId }) 
   next() 

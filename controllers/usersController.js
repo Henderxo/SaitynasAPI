@@ -30,31 +30,37 @@ exports.getAllUsers = async (req, res) => {
 }
 
 
-//Needs some more added to this
+
 exports.refreshToken = async (req, res) => {
-  const { refreshToken } = req.body; 
+  const refreshToken = req.cookies?.refreshToken;  
 
   if (!refreshToken) {
-    return res.sendStatus(401); 
+    return res.status(403).json({ error: 'Refresh token is required' });
   }
 
   try {
-    // Verify the refresh token
-    const payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
-    const user = await User.findById(payload.userId);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET); 
+    
+    const newAccessToken = jwt.sign(
+      { id: decoded.id, type: decoded.type },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' } 
+    );
 
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.sendStatus(403); 
-    }
 
-    const accessToken = jwt.sign({ userId: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,  
+      secure: process.env.NODE_ENV === 'production',  
+      maxAge: 1 * 60 * 60 * 1000,  
+    });
 
-    res.json({ accessToken });
+    res.json({token: newAccessToken});
+
   } catch (error) {
-    return res.sendStatus(403); 
+    res.status(403).json({ error: 'Invalid or expired refresh token' });
   }
 };
-//Needs some more added to this
+
 exports.logoutUser = async (req, res) => {
   const { refreshToken } = req.body; 
 
@@ -69,8 +75,16 @@ exports.logoutUser = async (req, res) => {
     await user.save();
   }
 
-  res.sendStatus(204); // No content
+  res.sendStatus(204);
 };
+
+const generateTokens = (user) => {
+  const accessToken = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '10m' });
+  const refreshToken = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+  return { accessToken, refreshToken };
+};
+
 
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -86,24 +100,35 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const { accessToken, refreshToken } = generateTokens(user);
 
     const photoBase64 = user.photo ? user.photo.toString('base64') : null;
 
-    // Send token and user information (excluding sensitive fields like password)
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        type: user.type,
-        photo: photoBase64
-      },
-    });
+    res
+      .cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 1 * 60 * 60 * 1000, 
+      })
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
+      })
+      .json({
+        token: accessToken,
+        user: {
+          
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          type: user.type,
+          photo: photoBase64,
+        },
+      });
   } catch (error) {
-
     res.status(500).json({ error: 'Error logging in.' });
   }
 };
