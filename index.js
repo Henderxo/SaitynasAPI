@@ -49,6 +49,10 @@ app.use(cors({
   origin: allowedOrigins, 
   credentials: true, 
 }));
+app.use(express.static(path.join(__dirname, 'dist')));
+app.all('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 app.use(cookieParser());
 
@@ -98,9 +102,7 @@ app.get('/developers/:developerId/games', gamesController.getGamesByDeveloper)
 app.get('/games/:gameId/comments', commentsController.getCommentsByGame) 
 app.get('/developers/:developerId/games/:gameId/comments/:commentId', commentsController.getSpecificComment)
 
-app.all('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
+
 
 // Start the server
 app.listen(PORT, () => {
