@@ -12,7 +12,7 @@ paths:
   /login:
     post:
       summary: Login a user
-      description: Authenticates a user and returns a JWT token for further requests
+      description: Authenticates a user by verifying email and password, returning a JWT token for further requests. The JWT token will be stored as a cookie for automatic inclusion in subsequent requests.
       operationId: loginUser
       tags:
         - Authentication
@@ -34,12 +34,21 @@ paths:
                   example: password123
       responses:
         '200':
-          description: Successful login
+          description: Successful login and JWT token issued (stored in cookie)
+          headers:
+            Set-Cookie:
+              description: JWT token stored in a cookie
+              schema:
+                type: string
+                example: "accessToken=<JWT_TOKEN_HERE>"
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  message:
+                    type: string
+                    example: "Login successful, JWT token issued."
                   token:
                     type: string
                     description: The JWT token for authorization
@@ -53,7 +62,8 @@ paths:
                   message:
                     type: string
                     example: "Invalid email or password."
-
+        '500':
+          description: Server error
 
   /comments:
     get:
@@ -90,7 +100,7 @@ paths:
 
     post:
       summary: Create a new comment
-      description: Creates a new comment for a specific game. The userId is taken from the authenticated user (JWT token). The gameId must exist.
+      description: Creates a new comment for a specific game. The userId is taken from the authenticated user (JWT token). The gameId must exist and be associated with a valid game.
       operationId: createComment
       tags:
         - Comments
@@ -156,7 +166,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Game not found"  # Or "User not found"
+                    example: "Game not found"
         '500':
           description: Server error
 
@@ -383,10 +393,3 @@ paths:
                     example: "Game not found"
         '500':
           description: Server error
-
-  /developers/{developerId}/games/{gameId}/comments/{commentId}:
-    get:
-      summary: Get a specific comment by developer, game, and comment ID
-      description: Retrieves a specific comment for a game by developer, game, and comment ID
-      operationId: getSpecificComment
-     
