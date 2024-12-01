@@ -50,7 +50,8 @@ exports.refreshToken = async (req, res) => {
 
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,  
-      secure: process.env.NODE_ENV === 'production',  
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'none',
       maxAge: 60 * 60 * 1000,  
     });
 
@@ -108,13 +109,13 @@ exports.loginUser = async (req, res) => {
       .cookie('accessToken', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 60 * 60 * 1000, 
       })
       .cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000, 
       })
       .json({
