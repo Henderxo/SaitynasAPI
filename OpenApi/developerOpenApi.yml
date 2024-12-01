@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Developers API
-  description: API to manage developers, including CRUD operations with authentication
+  description: API to manage developers, including CRUD operations with authentication.
   version: 1.0.0
   contact:
     name: API Support
@@ -90,8 +90,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Developer'
-        '422':
-          description: Validation error for input data
+        '400':
+          description: Bad request, missing required fields
         '500':
           description: Error creating developer
 
@@ -155,8 +155,8 @@ paths:
                 $ref: '#/components/schemas/Developer'
         '404':
           description: Developer not found
-        '422':
-          description: Validation error for input data
+        '400':
+          description: Bad request, missing required fields
         '500':
           description: Error updating developer
 
@@ -235,6 +235,12 @@ components:
         userId:
           type: string
           description: The ID of the associated user
+        photo:
+          type: string
+          format: byte
+          description: The photo of the developer in Base64 encoding
+        description:
+          type: string
       example:
         id: 67081490ab3278bc70ee582c
         name: Awesome Dev Studio
@@ -242,6 +248,8 @@ components:
         founded: 2010-05-01T00:00:00.000Z
         headquarters: San Francisco, CA
         userId: 670808e1b28f81ef82392ec5
+        photo: "Base64-encoded-image-string-here"
+        description: "A leading game development studio."
 
     DeveloperInput:
       type: object
@@ -251,6 +259,7 @@ components:
         - founded
         - headquarters
         - userId
+        - description
       properties:
         name:
           type: string
@@ -264,12 +273,15 @@ components:
         userId:
           type: string
           description: The ID of the associated user
+        description:
+          type: string
       example:
         name: Awesome Dev Studio
         founder: John Doe
         founded: 2010-05-01T00:00:00.000Z
         headquarters: San Francisco, CA
         userId: 670808e1b28f81ef82392ec5
+        description: "A leading game development studio."
 
     Game:
       type: object
