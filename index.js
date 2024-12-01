@@ -39,8 +39,13 @@ const PORT = process.env.PORT || 3000
 
 app.use(express.json()) 
 
+const allowedOrigins = [
+  'http://game-forum-gamma.vercel.app',   
+  'https://game-forum-gamma.vercel.app',  
+];
+
 app.use(cors({
-  origin: 'http://game-forum-gamma.vercel.app', 
+  origin: allowedOrigins, 
   credentials: true, 
 }));
 
